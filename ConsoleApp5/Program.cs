@@ -72,7 +72,7 @@ namespace ConsoleApp5
                 monsterHP = rnd.Next(20, 51);
                 monsterAttack = rnd.Next(5, 16);
 
-                string[] names = { "Гоблин-разведчик", "Скелет-воин", "Болотная крыса", "Тень из стены", "Одичалый кобольд" };
+                string[] names = { "Гоблин-разведчик", "Скелет-воин", "Болотная крыса", "Тень из стены", "Одичалый кобольд" };//случ имя
                 string name = names[rnd.Next(0, names.Length)];
 
                 Console.WriteLine($"Из темноты выходит {name}! (HP: {monsterHP}, Атака: {monsterAttack})");
@@ -85,7 +85,7 @@ namespace ConsoleApp5
                     "С потолка падает камень!",
                     "Вы задели растяжку - дротик летит в вашу сторону!"
                 };
-                Console.WriteLine(traps[rnd.Next(0, traps.Length)]);
+                Console.WriteLine(traps[rnd.Next(0, traps.Length)]);//случ ловушка
                 int damage = rnd.Next(5, 21);
                 hp = hp - damage;
                 Console.WriteLine($"Вы получили {damage} урона.");
