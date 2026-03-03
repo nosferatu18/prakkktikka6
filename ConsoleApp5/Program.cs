@@ -459,8 +459,6 @@ namespace ConsoleApp5
             static void Main(string[] args)
             {
                 StartGame();
-                Console.WriteLine("\nНажмите любую клавишу для выхода...");
-                Console.ReadKey();
             }
         }
 
