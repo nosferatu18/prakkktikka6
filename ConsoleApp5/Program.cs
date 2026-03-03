@@ -26,8 +26,8 @@ namespace ConsoleApp5
             arrows = 5;
             swordMin = 10;
             swordMax = 20;
-            Console.WriteLine("Числовой квест ULTIMATE");
-            Console.WriteLine("Вы входите в подземелье...\n");
+            Console.WriteLine("Числовой квест DnD");
+            Console.WriteLine("Вы входите в подземелье...да прибудет с вами удача...");
         }
 
         // 2. Запуск игры
