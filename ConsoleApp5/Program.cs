@@ -15,6 +15,10 @@ namespace ConsoleApp5
         static int arrows;
         static int swordMin;
         static int swordMax;
+        static int currentRoom;
+        static int monsterHP;
+        static int monsterAttack;
+        static bool gameOver;
 
         // 1. Инициализация игры
         static void InitializeGame()
@@ -26,8 +30,10 @@ namespace ConsoleApp5
             arrows = 5;
             swordMin = 10;
             swordMax = 20;
-            Console.WriteLine("Числовой квест DnD");
-            Console.WriteLine("Вы входите в подземелье...да прибудет с вами удача...");
+            currentRoom = 0;
+            gameOver = false;
+            Console.WriteLine("Числовой квест ULTIMATE");
+            Console.WriteLine("Таверна осталась позади. Факел трещит в руке. Вы спускаетесь в подземелье...\n");
         }
 
         // 2. Запуск игры
@@ -35,96 +41,100 @@ namespace ConsoleApp5
         {
             InitializeGame();
 
-            for (int room = 1; room <= 15; room++)
+            while (currentRoom < 15 && gameOver == false)
             {
-                if (hp <= 0)
-                {
-                    EndGame(false);
-                    return;
-                }
+                currentRoom++;
 
-                if (room == 15)
+                if (currentRoom == 15)
                 {
-                    Console.WriteLine("-- Комната 15: очень страшный орк --");
+                    Console.WriteLine("\n-- Комната 15: Тронный зал подземелья --");
                     FightBoss();
-                    return;
                 }
                 else
                 {
-                    ProcessRoom(room);
+                    ProcessRoom();
                 }
             }
-
-            if (hp > 0)
-                EndGame(true);
         }
 
         // 3. Обработка комнаты
-        static void ProcessRoom(int roomNumber)
+        static void ProcessRoom()
         {
             Random rnd = new Random();
 
-            Console.WriteLine($"-- Комната {roomNumber} --");
+            Console.WriteLine($"\n-- Комната {currentRoom} --");
             ShowStats();
 
             int eventType = rnd.Next(1, 9);
 
-            switch (eventType)
+            if (eventType == 1 || eventType == 2)
             {
-                case 1:
-                case 2:
-                    int mHp = rnd.Next(20, 51);
-                    int mAtk = rnd.Next(5, 16);
-                    Console.WriteLine($"Вы встретили злодея! (HP: {mHp}, Атака: {mAtk})");
-                    FightMonster(mHp, mAtk);
-                    break;
-                case 3:
-                    Console.WriteLine("Вы наступили на ловушку!");
-                    int damage = rnd.Next(5, 21);
-                    hp -= damage;
-                    Console.WriteLine($"Вы потеряли {damage} HP.");
-                    break;
-                case 4:
-                    Console.WriteLine("Вы нашли сокровище!");
-                    OpenChest();
-                    break;
-                case 5:
-                    Console.WriteLine("Вы встретили таинственного чудика.");
-                    VisitMerchant();
-                    break;
-                case 6:
-                    Console.WriteLine("Вы нашли древний алтарь.");
-                    VisitAltar();
-                    break;
-                case 7:
-                    Console.WriteLine("Из тени появляется тёмный...загадочный...маг...");
-                    MeetDarkMage();
-                    break;
-                case 8:
-                    Console.WriteLine("Вы нашли головоломку на стене...подумайте!");
-                    SolveRiddle();
-                    break;
+                monsterHP = rnd.Next(20, 51);
+                monsterAttack = rnd.Next(5, 16);
+
+                string[] names = { "Гоблин-разведчик", "Скелет-воин", "Болотная крыса", "Тень из стены", "Одичалый кобольд" };
+                string name = names[rnd.Next(0, names.Length)];
+
+                Console.WriteLine($"Из темноты выходит {name}! (HP: {monsterHP}, Атака: {monsterAttack})");
+                FightMonster();
+            }
+            else if (eventType == 3)
+            {
+                string[] traps = {
+                    "Пол уходит из-под ног - ядовитые шипы!",
+                    "С потолка падает камень!",
+                    "Вы задели растяжку - дротик летит в вашу сторону!"
+                };
+                Console.WriteLine(traps[rnd.Next(0, traps.Length)]);
+                int damage = rnd.Next(5, 21);
+                hp -= damage;
+                Console.WriteLine($"Вы получили {damage} урона.");
+            }
+            else if (eventType == 4)
+            {
+                Console.WriteLine("В углу комнаты стоит старый сундук, покрытый пылью...");
+                OpenChest();
+            }
+            else if (eventType == 5)
+            {
+                Console.WriteLine("У стены сидит бродячий торговец. Он кивает вам и раскладывает товар.");
+                VisitMerchant();
+            }
+            else if (eventType == 6)
+            {
+                Console.WriteLine("Посреди комнаты стоит каменный алтарь. От него исходит тёплый свет.");
+                VisitAltar();
+            }
+            else if (eventType == 7)
+            {
+                Console.WriteLine("Воздух холодеет. Из тени выступает фигура в чёрном балахоне...");
+                MeetDarkMage();
+            }
+            else if (eventType == 8)
+            {
+                Console.WriteLine("На стене высечены древние руны. Кажется, это загадка...");
+                SolveRiddle();
             }
 
             if (hp <= 0)
             {
-                EndGame(false);
-                Environment.Exit(0);
+                gameOver = true;
+                EndGameLose();
             }
         }
 
         // 4. Бой с монстром
-        static void FightMonster(int monsterHP, int monsterAttack)
+        static void FightMonster()
         {
             Random rnd = new Random();
 
             while (monsterHP > 0 && hp > 0)
             {
-                Console.WriteLine($"Монстр HP: {monsterHP} | Ваше HP: {hp}");
-                Console.WriteLine("1 - Атака мечом");
+                Console.WriteLine($"\nВраг HP: {monsterHP} | Ваше HP: {hp}");
+                Console.WriteLine("1 - Взмах мечом");
                 Console.WriteLine("2 - Выстрел из лука (стрел: " + arrows + ")");
-                Console.WriteLine("3 - Выпить зелье (зелий: " + potions + ")");
-                Console.Write("Ваш выбор: ");
+                Console.WriteLine("3 - Глотнуть зелье (зелий: " + potions + ")");
+                Console.Write("Ваш ход: ");
 
                 string input = Console.ReadLine();
 
@@ -132,7 +142,7 @@ namespace ConsoleApp5
                 {
                     int dmg = rnd.Next(swordMin, swordMax + 1);
                     monsterHP -= dmg;
-                    Console.WriteLine($"Вы ударили мечом на {dmg} урона.");
+                    Console.WriteLine($"Сталь свистнула в воздухе! Вы нанесли {dmg} урона.");
                 }
                 else if (input == "2")
                 {
@@ -141,11 +151,11 @@ namespace ConsoleApp5
                         int dmg = rnd.Next(5, 16);
                         monsterHP -= dmg;
                         arrows--;
-                        Console.WriteLine($"Вы выстрелили из лука на {dmg} урона.");
+                        Console.WriteLine($"Стрела нашла цель! {dmg} урона.");
                     }
                     else
                     {
-                        Console.WriteLine("У вас нет стрел! Вы пропускаете ход.");
+                        Console.WriteLine("Колчан пуст! Вы теряете инициативу.");
                     }
                 }
                 else if (input == "3")
@@ -154,14 +164,14 @@ namespace ConsoleApp5
                 }
                 else
                 {
-                    Console.WriteLine("Неверный выбор, вы пропускаете ход.");
+                    Console.WriteLine("Вы замешкались и теряете инициативу.");
                 }
 
                 if (monsterHP > 0)
                 {
                     int mDmg = rnd.Next(1, monsterAttack + 1);
                     hp -= mDmg;
-                    Console.WriteLine($"Монстр атакует вас на {mDmg} урона, берегись");
+                    Console.WriteLine($"Враг наносит ответный удар! {mDmg} урона.");
                 }
             }
 
@@ -169,7 +179,7 @@ namespace ConsoleApp5
             {
                 int reward = rnd.Next(5, 16);
                 gold += reward;
-                Console.WriteLine($"Монстр повержен, торжествуйте! Вы получили {reward} золота.");
+                Console.WriteLine($"Враг повержен! Вы обыскали тело и нашли {reward} золотых.");
             }
         }
 
@@ -177,16 +187,16 @@ namespace ConsoleApp5
         static void OpenChest()
         {
             Random rnd = new Random();
-            bool cursed = rnd.Next(0, 3) == 0;
+            int chance = rnd.Next(0, 3);
 
-            if (cursed)
+            if (chance == 0)
             {
-                Console.WriteLine("Сундук оказался проклятым, возможно в следующий раз тебе повезет больше!");
+                Console.WriteLine("Замок щёлкнул... Сундук окутало тёмное пламя! Проклятие!");
                 int g = rnd.Next(5, 16);
                 gold += g;
                 maxHp -= 10;
                 if (hp > maxHp) hp = maxHp;
-                Console.WriteLine($"Вы получили {g} золота, но макс. HP уменьшилось на 10.");
+                Console.WriteLine($"Внутри {g} золотых, но проклятие забрало 10 макс. HP.");
             }
             else
             {
@@ -195,18 +205,18 @@ namespace ConsoleApp5
                 {
                     int g = rnd.Next(5, 21);
                     gold += g;
-                    Console.WriteLine($"В сундуке {g} золота!");
+                    Console.WriteLine($"Крышка со скрипом открылась. Внутри блестят {g} золотых!");
                 }
                 else if (loot == 2)
                 {
                     potions++;
-                    Console.WriteLine("В сундуке зелье здоровья!");
+                    Console.WriteLine("Внутри аккуратно лежит склянка с красным зельем. Зелье здоровья!");
                 }
                 else
                 {
                     int a = rnd.Next(2, 6);
                     arrows += a;
-                    Console.WriteLine($"В сундуке {a} стрелы!");
+                    Console.WriteLine($"Под тряпками обнаружилась связка из {a} стрел.");
                 }
             }
         }
@@ -214,10 +224,10 @@ namespace ConsoleApp5
         // 6. Торговец
         static void VisitMerchant()
         {
-            Console.WriteLine($"Ваше золото: {gold}");
-            Console.WriteLine("1 - Купить зелье (10 золота)");
-            Console.WriteLine("2 - Купить 3 стрелы (5 золота)");
-            Console.WriteLine("3 - Уйти");
+            Console.WriteLine($"Ваш кошель: {gold} золотых");
+            Console.WriteLine("1 - Зелье здоровья (10 золотых)");
+            Console.WriteLine("2 - Связка из 3 стрел (5 золотых)");
+            Console.WriteLine("3 - Пройти мимо");
             Console.Write("Ваш выбор: ");
 
             string input = Console.ReadLine();
@@ -228,10 +238,10 @@ namespace ConsoleApp5
                 {
                     gold -= 10;
                     potions++;
-                    Console.WriteLine("Вы купили зелье.");
+                    Console.WriteLine("Торговец протягивает вам склянку. Сделка заключена.");
                 }
                 else
-                    Console.WriteLine("Не хватает золота.");
+                    Console.WriteLine("Торговец качает головой - монет не хватает.");
             }
             else if (input == "2")
             {
@@ -239,14 +249,14 @@ namespace ConsoleApp5
                 {
                     gold -= 5;
                     arrows += 3;
-                    Console.WriteLine("Вы купили 3 стрелы.");
+                    Console.WriteLine("Торговец отсчитывает три стрелы. Наконечники острые.");
                 }
                 else
-                    Console.WriteLine("Не хватает золота.");
+                    Console.WriteLine("Торговец качает головой - монет не хватает.");
             }
             else
             {
-                Console.WriteLine("Вы прошли мимо торговца.");
+                Console.WriteLine("Вы киваете торговцу и идёте дальше.");
             }
         }
 
@@ -255,14 +265,14 @@ namespace ConsoleApp5
         {
             if (gold < 10)
             {
-                Console.WriteLine("У вас нет 10 золота для пожертвования. Ничего не происходит.");
+                Console.WriteLine("Алтарь молчит. У вас нет 10 золотых для подношения.");
                 return;
             }
 
-            Console.WriteLine("Пожертвовать 10 золота?");
-            Console.WriteLine("1 - Увеличить урон меча на 5");
-            Console.WriteLine("2 - Восстановить 20 HP");
-            Console.WriteLine("3 - Отказаться");
+            Console.WriteLine("Положить 10 золотых на алтарь?");
+            Console.WriteLine("1 - Просить силу (урон меча +5)");
+            Console.WriteLine("2 - Просить исцеление (+20 HP)");
+            Console.WriteLine("3 - Отойти");
             Console.Write("Ваш выбор: ");
 
             string input = Console.ReadLine();
@@ -272,18 +282,18 @@ namespace ConsoleApp5
                 gold -= 10;
                 swordMin += 5;
                 swordMax += 5;
-                Console.WriteLine("Ваш меч стал сильнее! Урон увеличен на 5.");
+                Console.WriteLine("Алтарь засиял. Ваш клинок покрылся лёгким свечением. Урон +5.");
             }
             else if (input == "2")
             {
                 gold -= 10;
                 hp += 20;
                 if (hp > maxHp) hp = maxHp;
-                Console.WriteLine("Алтарь восстановил вам 20 HP.");
+                Console.WriteLine("Тёплая волна прошла по телу. Раны затянулись. +20 HP.");
             }
             else
             {
-                Console.WriteLine("Вы отошли от алтаря.");
+                Console.WriteLine("Вы убираете руку и уходите. Свет гаснет.");
             }
         }
 
@@ -292,13 +302,13 @@ namespace ConsoleApp5
         {
             if (hp <= 10)
             {
-                Console.WriteLine("Маг смотрит на вас и исчезает... Вы слишком слабы.");
+                Console.WriteLine("Маг окидывает вас взглядом и исчезает. Вы слишком слабы для сделки.");
                 return;
             }
 
-            Console.WriteLine("Маг предлагает: отдай 10 HP и получи 2 зелья и 5 стрел.");
-            Console.WriteLine("1 - Согласиться");
-            Console.WriteLine("2 - Отказаться");
+            Console.WriteLine("Маг шепчет: Отдай каплю жизни - 10 HP. Взамен получишь 2 зелья и 5 стрел.");
+            Console.WriteLine("1 - Протянуть руку");
+            Console.WriteLine("2 - Отступить");
             Console.Write("Ваш выбор: ");
 
             string input = Console.ReadLine();
@@ -308,11 +318,11 @@ namespace ConsoleApp5
                 hp -= 10;
                 potions += 2;
                 arrows += 5;
-                Console.WriteLine("Сделка заключена! Вы получили 2 зелья и 5 стрел.");
+                Console.WriteLine("Холод пробежал по руке. Сделка заключена. 2 зелья и 5 стрел ваши.");
             }
             else
             {
-                Console.WriteLine("Маг растворяется в тенях.");
+                Console.WriteLine("Маг усмехнулся и растворился в темноте.");
             }
         }
 
@@ -324,11 +334,11 @@ namespace ConsoleApp5
                 potions--;
                 hp += 30;
                 if (hp > maxHp) hp = maxHp;
-                Console.WriteLine("Вы выпили зелье. +30 HP.");
+                Console.WriteLine("Вы опрокинули склянку. Тепло разлилось по телу. +30 HP.");
             }
             else
             {
-                Console.WriteLine("У вас нет зелий!");
+                Console.WriteLine("Зелий не осталось!");
             }
         }
 
@@ -345,16 +355,17 @@ namespace ConsoleApp5
             int bossHp = 100;
             int turn = 0;
 
-            Console.WriteLine("Перед вами огромный Тёмный Страж! (HP: 100, Атака: 15-25)");
+            Console.WriteLine("Земля дрожит. Перед вами встаёт Тёмный Страж - хранитель подземелья.");
+            Console.WriteLine("HP: 100 | Атака: 15-25");
 
             while (bossHp > 0 && hp > 0)
             {
                 turn++;
-                Console.WriteLine($"\nХод {turn} | Босс HP: {bossHp} | Ваше HP: {hp}");
-                Console.WriteLine("1 - Атака мечом");
+                Console.WriteLine($"\nРаунд {turn} | Страж HP: {bossHp} | Ваше HP: {hp}");
+                Console.WriteLine("1 - Взмах мечом");
                 Console.WriteLine("2 - Выстрел из лука (стрел: " + arrows + ")");
-                Console.WriteLine("3 - Выпить зелье (зелий: " + potions + ")");
-                Console.Write("Ваш выбор: ");
+                Console.WriteLine("3 - Глотнуть зелье (зелий: " + potions + ")");
+                Console.Write("Ваш ход: ");
 
                 string input = Console.ReadLine();
 
@@ -362,7 +373,7 @@ namespace ConsoleApp5
                 {
                     int dmg = rnd.Next(swordMin, swordMax + 1);
                     bossHp -= dmg;
-                    Console.WriteLine($"Вы ударили мечом на {dmg} урона.");
+                    Console.WriteLine($"Клинок рассекает воздух! {dmg} урона.");
                 }
                 else if (input == "2")
                 {
@@ -371,11 +382,11 @@ namespace ConsoleApp5
                         int dmg = rnd.Next(5, 16);
                         bossHp -= dmg;
                         arrows--;
-                        Console.WriteLine($"Вы выстрелили из лука на {dmg} урона.");
+                        Console.WriteLine($"Стрела вонзается в броню! {dmg} урона.");
                     }
                     else
                     {
-                        Console.WriteLine("У вас нет стрел! Вы пропускаете ход.");
+                        Console.WriteLine("Колчан пуст! Вы теряете инициативу.");
                     }
                 }
                 else if (input == "3")
@@ -384,7 +395,7 @@ namespace ConsoleApp5
                 }
                 else
                 {
-                    Console.WriteLine("Неверный выбор, вы пропускаете ход.");
+                    Console.WriteLine("Вы замешкались и теряете инициативу.");
                 }
 
                 if (bossHp <= 0) break;
@@ -392,7 +403,7 @@ namespace ConsoleApp5
                 if (turn % 3 == 0)
                 {
                     bossHp += 10;
-                    Console.WriteLine("Босс восстановил 10 HP!");
+                    Console.WriteLine("Тёмная энергия окутала Стража. Он восстановил 10 HP!");
                 }
 
                 if (rnd.Next(0, 3) == 0)
@@ -400,20 +411,22 @@ namespace ConsoleApp5
                     int dmg1 = rnd.Next(15, 26);
                     int dmg2 = rnd.Next(15, 26);
                     hp -= dmg1 + dmg2;
-                    Console.WriteLine($"Босс наносит ДВОЙНОЙ УДАР: {dmg1} + {dmg2} = {dmg1 + dmg2} урона!");
+                    Console.WriteLine($"Страж обрушивает двойной удар! {dmg1} + {dmg2} = {dmg1 + dmg2} урона!");
                 }
                 else
                 {
                     int dmg = rnd.Next(15, 26);
                     hp -= dmg;
-                    Console.WriteLine($"Босс атакует вас на {dmg} урона.");
+                    Console.WriteLine($"Тяжёлый кулак Стража обрушивается на вас. {dmg} урона.");
                 }
             }
 
             if (bossHp <= 0 && hp > 0)
-                EndGame(true);
+                EndGameWin();
             else
-                EndGame(false);
+                EndGameLose();
+
+            gameOver = true;
         }
 
         // 12. Загадка
@@ -424,39 +437,42 @@ namespace ConsoleApp5
             int b = rnd.Next(1, 20);
             int answer = a + b;
 
-            Console.WriteLine($"Решите загадку: сколько будет {a} + {b}?");
+            Console.WriteLine($"Руны складываются в вопрос: сколько будет {a} + {b}?");
             Console.Write("Ваш ответ: ");
 
             string input = Console.ReadLine();
+            int playerAnswer = Convert.ToInt32(input);
 
-            if (int.TryParse(input, out int playerAnswer) && playerAnswer == answer)
+            if (playerAnswer == answer)
             {
                 int reward = rnd.Next(5, 16);
                 gold += reward;
-                Console.WriteLine($"Правильно! Вы получили {reward} золота.");
+                Console.WriteLine($"Руны засветились зелёным. Стена раздвинулась - за ней {reward} золотых!");
             }
             else
             {
                 int dmg = rnd.Next(5, 11);
                 hp -= dmg;
-                Console.WriteLine($"Неправильно! Ловушка сработала, вы потеряли {dmg} HP.");
+                Console.WriteLine($"Руны вспыхнули красным! Ловушка сработала. {dmg} урона.");
             }
         }
 
-        // 13. Завершение игры
-        static void EndGame(bool isWin)
+        // 13. Конец игры - победа
+        static void EndGameWin()
         {
             Console.WriteLine();
-            if (isWin)
-            {
-                Console.WriteLine("ПОБЕДА! Вы прошли подземелье!");
-                Console.WriteLine("Финальные характеристики:");
-            }
-            else
-            {
-                Console.WriteLine("ВЫ ПОГИБЛИ...");
-                Console.WriteLine("Ваши характеристики на момент смерти:");
-            }
+            Console.WriteLine("Тёмный Страж рушится на колени и рассыпается в прах.");
+            Console.WriteLine("Свет пробивается сквозь трещины в потолке. Вы прошли подземелье!");
+            Console.WriteLine("Финальные характеристики:");
+            ShowStats();
+        }
+
+        // 14. Конец игры - поражение
+        static void EndGameLose()
+        {
+            Console.WriteLine();
+            Console.WriteLine("Тьма поглотила вас. Ваше приключение окончено...");
+            Console.WriteLine("Характеристики на момент гибели:");
             ShowStats();
         }
 
