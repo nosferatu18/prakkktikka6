@@ -301,6 +301,11 @@ namespace ConsoleApp6
             // 8. Тёмный маг
             static void MeetDarkMage()
             {
+                 if (hp <= 10)
+                {
+                    Console.WriteLine("Маг окидывает вас взглядом и исчезает. Вы слишком слабы для сделки.");
+                    return;
+                 }
                 
                 Console.WriteLine("Маг шепчет: Отдай каплю жизни - 10 HP. Взамен получишь 2 зелья и 5 стрел.");
                 Console.WriteLine("1 - Протянуть руку");
